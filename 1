@@ -1,52 +1,77 @@
-Step 1: Create the Master Configuration File (src/config/gameConfig.ts)
-Define a GAME_CONFIG object and a PropertyCategory interface. This must include:
+# Master Rewrite Prompt: Property Empire (Offline Edition)
+Role: You are an expert Full-Stack React Developer specializing in MapLibre GL, TypeScript, and Local State Management.
 
-Category Definitions: For each category (Country, City, Landmark, etc.), define:
+Objective: Rewrite the "Property Empire" application from a Firebase-multiplayer game to a Local-First Single-Player game. You must maintain a 1:1 visual match of the UI, animations, and economy logic while implementing a Simulated Bot Economy.
 
-minZoom and maxZoom for visibility and sizing.  
-
-icon (emoji or fallback) to replace hardcoded switch cases.  
-
-baseShares to replace SHARE_RULES.  
-
-hourlyIncome to replace CATEGORY_INCOME.  
-
-xpMultiplier for purchasing rewards.  
-
-Global Map Settings: Define constants for DEFAULT_ICON_SIZE, HOVER_HALO_WIDTH, and the breakpoints for when specific categories appear or vanish.  
-
-Step 2: Refactor Map Logic (Map.tsx)
-
-Modify Map.tsx to iterate over the GAME_CONFIG.categories to dynamically generate MapLibre expressions for icon-size, icon-opacity, and symbol-sort-key.  
-
-Replace the hardcoded SHARE_RULES constant with values pulled from the config.  
-
-Step 3: Refactor Service Engines (RentEngine.tsx & VolatilityEngine.tsx)
-
-In RentEngine.tsx, remove the CATEGORY_INCOME and ID_OVERRIDES constants.  
-
-Update the calculation loop to find the hourlyIncome trait based on the property’s category defined in the master config.  
-
-In VolatilityEngine.tsx, move the volatility range (currently -5% to +5%) and history limit (20 ticks) into global config variables.  
-
-Step 4: Refactor UI Components (PropertyPopupContent.tsx & Dashboard.tsx)
-
-Remove the getCategoryIcon function in PropertyPopupContent.tsx and pull icons directly from the config.  
-
-Ensure the purchaseQuantity slider maxes out at the baseShares defined for that category if bank records are unavailable.  
-
-Update Dashboard.tsx and MarketplaceModal.tsx to generate category filter lists dynamically using Object.keys(GAME_CONFIG.categories).  
-+1
-
-Step 5: Refactor Transaction Hooks (useBuyProperty.ts)
-
-Replace the hardcoded XP logic (increment(2 * quantity)) with a multiplier retrieved from the master config based on the property category.  
-
-Constraint Checklist:
-
-Strictly Preservationist: Do not delete existing Firebase integration, MapLibre globe settings, or CSS layout structures.  
+## 1. Core Architecture & State Migration
+Replace all Firebase/Firestore dependencies with a unified local state (e.g., Zustand or React Context + LocalStorage).  
 +2
 
-Type Safety: Use TypeScript interfaces for the config so that adding a new category requires all traits to be defined, preventing runtime errors.
+Player State: Initialize with $1,000,000 cash, $1,000,000 net worth, and Level 1 (5 XP).  
 
-No Bridge Phrases: Do not use phrases like "Based on your config..." in the code; ensure the logic is silent and functional.
+Database Simulation: Instead of Firestore, maintain a local object containing users (Player + 10-20 generated Bots), properties, and listings.  
++2
+
+Data Loading: Retain the dataManager logic using idb-keyval to fetch and cache the 100MB world property dataset from GitHub.  
++1
+
+## 2. Visual & Map Specifications
+Replicate the MapLibre GL environment exactly:
+
+Projection: Use the 3D Globe projection.  
+
+Layering: Implement the properties-layer symbol layer with zoom-based visibility (minZoom/maxZoom) and priority sorting defined in GAME_CONFIG.ts.  
++1
+
+Interactive Popups: Use the custom-property-popup CSS class to render the PropertyPopupContent with a transparent, blurred background, ignoring default MapLibre styling.  
++1
+
+HUD: Keep the top-left asset trackers and the bottom-right action column (Map Filter, News, Marketplace, Leaderboard, Portfolio, Dashboard).  
+
+## 3. Automated Economic Engines
+Migrate the hourly engines to run on a local timer:
+
+Volatility Engine: Every game-hour, shift the baseValue of all global properties by a random percentage (-5% to +5%) and update the 20-tick history for the LivePortfolio graphs.  
++1
+
+Rent Engine: Every game-hour, calculate dividends for the player and all bots based on their ownership percentage of property categories (e.g., Country, City, Landmark).  
++1
+
+Simulated Bot Engine (New): Create a background service where bots:
+
+Buy available shares from the bank.  
++1
+
+Post shares on the Marketplace for random asking prices.  
+
+Place bids on player listings.  
++1
+
+Send direct P2P offers to the player via the NewsModal.  
++1
+
+## 4. Feature Parity Requirements
+Ensure these features are implemented 1:1 with the original logic:
+
+Marketplace: A global auction house showing player and bot listings. Implement the Escrow bidding logic where outbid players/bots are immediately refunded.  
++1
+
+Executive Dashboard: Portfolio management for selling shares back to the bank or listing them for sale.  
+
+Direct Offers: Allow players to send offers to bots (visible in the "Current Shareholders" list) and receive offers from bots in the NewsModal.  
++2
+
+Global Leaderboard: Rank the player against the simulated bots based on total Net Worth.  
+
+Live Portfolio: Real-time Chart.js graphs tracking asset performance with PnL percentages.  
+
+## 5. Technical Constraints
+Styling: Use Tailwind CSS and the specific configurations from index.css and App.css.  
++1
+
+Modularity: Keep the code modular; do not combine hooks like useBuyProperty or useMarketplace into a single file.  
++1
+
+Config Rigidity: Strictly follow the GAME_CONFIG.ts values for baseShares, hourlyIncome, and xpMultiplier.  
+
+Instruction: Begin by setting up the local state provider and the dataManager before building out the Map.tsx and Hud.tsx components.
