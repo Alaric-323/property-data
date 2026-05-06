@@ -1,0 +1,52 @@
+Step 1: Create the Master Configuration File (src/config/gameConfig.ts)
+Define a GAME_CONFIG object and a PropertyCategory interface. This must include:
+
+Category Definitions: For each category (Country, City, Landmark, etc.), define:
+
+minZoom and maxZoom for visibility and sizing.  
+
+icon (emoji or fallback) to replace hardcoded switch cases.  
+
+baseShares to replace SHARE_RULES.  
+
+hourlyIncome to replace CATEGORY_INCOME.  
+
+xpMultiplier for purchasing rewards.  
+
+Global Map Settings: Define constants for DEFAULT_ICON_SIZE, HOVER_HALO_WIDTH, and the breakpoints for when specific categories appear or vanish.  
+
+Step 2: Refactor Map Logic (Map.tsx)
+
+Modify Map.tsx to iterate over the GAME_CONFIG.categories to dynamically generate MapLibre expressions for icon-size, icon-opacity, and symbol-sort-key.  
+
+Replace the hardcoded SHARE_RULES constant with values pulled from the config.  
+
+Step 3: Refactor Service Engines (RentEngine.tsx & VolatilityEngine.tsx)
+
+In RentEngine.tsx, remove the CATEGORY_INCOME and ID_OVERRIDES constants.  
+
+Update the calculation loop to find the hourlyIncome trait based on the property’s category defined in the master config.  
+
+In VolatilityEngine.tsx, move the volatility range (currently -5% to +5%) and history limit (20 ticks) into global config variables.  
+
+Step 4: Refactor UI Components (PropertyPopupContent.tsx & Dashboard.tsx)
+
+Remove the getCategoryIcon function in PropertyPopupContent.tsx and pull icons directly from the config.  
+
+Ensure the purchaseQuantity slider maxes out at the baseShares defined for that category if bank records are unavailable.  
+
+Update Dashboard.tsx and MarketplaceModal.tsx to generate category filter lists dynamically using Object.keys(GAME_CONFIG.categories).  
++1
+
+Step 5: Refactor Transaction Hooks (useBuyProperty.ts)
+
+Replace the hardcoded XP logic (increment(2 * quantity)) with a multiplier retrieved from the master config based on the property category.  
+
+Constraint Checklist:
+
+Strictly Preservationist: Do not delete existing Firebase integration, MapLibre globe settings, or CSS layout structures.  
++2
+
+Type Safety: Use TypeScript interfaces for the config so that adding a new category requires all traits to be defined, preventing runtime errors.
+
+No Bridge Phrases: Do not use phrases like "Based on your config..." in the code; ensure the logic is silent and functional.
