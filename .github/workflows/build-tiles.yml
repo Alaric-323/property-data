@@ -1,0 +1,40 @@
+name: Generate PMTiles
+
+on:
+  workflow_dispatch: # Allows you to run this manually from the Actions tab
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Convert JSON to GeoJSON
+        run: |
+          python3 -c "
+          import json
+          with open('prop.json', 'r', encoding='utf-8') as f: data = json.load(f)
+          geojson = {'type': 'FeatureCollection', 'features': [{'type': 'Feature', 'geometry': {'type': 'Point', 'coordinates': [p['lng'], p['lat']]}, 'properties': {'id': p['id'], 'cat': p['cat'], 'icon': p.get('icon', ''), 'v': p['v']}} for p in data]}
+          with open('world.geojson', 'w', encoding='utf-8') as f: json.dump(geojson, f)
+          "
+
+      - name: Install Tippecanoe (The Industry Standard)
+        run: |
+          git clone https://github.com/felt/tippecanoe.git
+          cd tippecanoe
+          make -j
+          sudo make install
+
+      - name: Generate PMTiles
+        run: |
+          # -zg automatically guesses the best zoom levels. --drop-densest-as-needed prevents browser crashes.
+          tippecanoe -zg -o world.pmtiles --drop-densest-as-needed --force world.geojson
+
+      - name: Commit and Push back to Repo
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add world.pmtiles
+          git commit -m "Auto-generated world.pmtiles" || echo "No changes to commit"
+          git push
