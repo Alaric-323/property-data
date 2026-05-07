@@ -121,7 +121,7 @@
   { "id": "osm_MMR", "n": "Myanmar", "lat": 21.1891, "lng": 95.9560, "cat": "Country", "v": 66000000000, "icon": "https://flagcdn.com/w320/mm.png" },
   { "id": "osm_NAM", "n": "Namibia", "lat": -22.9576, "lng": 18.4904, "cat": "Country", "v": 13000000000, "icon": "https://flagcdn.com/w320/na.png" },
   { "id": "osm_NRU", "n": "Nauru", "lat": -0.5228, "lng": 166.9315, "cat": "Country", "v": 150000000, "icon": "https://flagcdn.com/w320/nr.png" },
-  { "id": "osm_NPL", "n": "Nepal", "lat": 28.3949, "lng": 84.1240, "cat": "Country", "v": 42000000000, "icon": "/icons/nepal.png" },
+  { "id": "osm_NPL", "n": "Nepal", "lat": 28.3949, "lng": 84.1240, "cat": "Country", "v": 42000000000, "icon": "\icons\nepal.png" },
   { "id": "osm_NLD", "n": "Netherlands", "lat": 52.1326, "lng": 5.2913, "cat": "Country", "v": 1150000000000, "icon": "https://flagcdn.com/w320/nl.png" },
   { "id": "osm_NZL", "n": "New Zealand", "lat": -40.9006, "lng": 174.8860, "cat": "Country", "v": 250000000000, "icon": "https://flagcdn.com/w320/nz.png" },
   { "id": "osm_NIC", "n": "Nicaragua", "lat": 12.8654, "lng": -85.2072, "cat": "Country", "v": 17000000000, "icon": "https://flagcdn.com/w320/ni.png" },
