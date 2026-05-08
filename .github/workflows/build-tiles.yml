@@ -50,10 +50,11 @@ jobs:
 
       - name: Bake PMTiles
         run: |
+          # -l world: Forces the internal layer name to match what Map.tsx expects
           # -zg: Auto-calculate zoom levels
           # --force: Overwrite existing pmtiles
           # --drop-densest-as-needed: Prevents map crashes in high-density areas
-          tippecanoe -zg -o world.pmtiles --drop-densest-as-needed --force internal_temp.geojson
+          tippecanoe -l world -zg -o world.pmtiles --drop-densest-as-needed --force internal_temp.geojson
 
       - name: Cleanup & Deploy
         run: |
