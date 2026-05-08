@@ -1,7 +1,7 @@
 name: Generate PMTiles
 
 on:
-  workflow_dispatch: # Allows you to run this manually from the Actions tab
+  workflow_dispatch: # Manual trigger from the Actions tab
 
 jobs:
   build:
@@ -10,31 +10,58 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Convert JSON to GeoJSON
+      - name: Transform JSON to Internal GeoJSON
         run: |
           python3 -c "
           import json
-          with open('prop.json', 'r', encoding='utf-8') as f: data = json.load(f)
-          geojson = {'type': 'FeatureCollection', 'features': [{'type': 'Feature', 'geometry': {'type': 'Point', 'coordinates': [p['lng'], p['lat']]}, 'properties': {'id': p['id'], 'cat': p['cat'], 'icon': p.get('icon', ''), 'v': p['v']}} for p in data]}
-          with open('world.geojson', 'w', encoding='utf-8') as f: json.dump(geojson, f)
+          # Load the raw tycoon data
+          with open('prop.json', 'r', encoding='utf-8') as f:
+              data = json.load(f)
+
+          # Convert to a standard GeoJSON FeatureCollection
+          # We explicitly map 'n' to 'n' and 'id' to 'id' so your UI logic doesn't break
+          features = []
+          for p in data:
+              features.append({
+                  'type': 'Feature',
+                  'id': p['id'], # Vital for promoteId: 'id' in MapLibre
+                  'geometry': {'type': 'Point', 'coordinates': [p['lng'], p['lat']]},
+                  'properties': {
+                      'id': p['id'],
+                      'n': p['n'],   # Name field for the property card
+                      'cat': p['cat'],
+                      'icon': p.get('icon', ''),
+                      'v': p['v']    # Value (e.g., 10 Trillion)
+                  }
+              })
+
+          geojson = {'type': 'FeatureCollection', 'features': features}
+          
+          with open('internal_temp.geojson', 'w', encoding='utf-8') as f:
+              json.dump(geojson, f)
           "
 
-      - name: Install Tippecanoe (The Industry Standard)
+      - name: Install Tippecanoe
         run: |
           git clone https://github.com/felt/tippecanoe.git
           cd tippecanoe
           make -j
           sudo make install
 
-      - name: Generate PMTiles
+      - name: Bake PMTiles
         run: |
-          # -zg automatically guesses the best zoom levels. --drop-densest-as-needed prevents browser crashes.
-          tippecanoe -zg -o world.pmtiles --drop-densest-as-needed --force world.geojson
+          # -zg: Auto-calculate zoom levels
+          # --force: Overwrite existing pmtiles
+          # --drop-densest-as-needed: Prevents map crashes in high-density areas
+          tippecanoe -zg -o world.pmtiles --drop-densest-as-needed --force internal_temp.geojson
 
-      - name: Commit and Push back to Repo
+      - name: Cleanup & Deploy
         run: |
+          # Delete the middle-man file so it doesn't sit in your repo
+          rm internal_temp.geojson
+          
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add world.pmtiles
-          git commit -m "Auto-generated world.pmtiles" || echo "No changes to commit"
+          git commit -m "🚀 Automated Market Update: world.pmtiles generated" || echo "No changes to commit"
           git push
